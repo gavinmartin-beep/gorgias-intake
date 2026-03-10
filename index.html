@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gorgias AI Agent — Onboarding Intake</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --coral: #FF9780;
+    --bg: #080808;
+    --surface: #111111;
+    --surface2: #0D0D0D;
+    --border: #1E1E1E;
+    --border2: #2A2A2A;
+    --text: #F0F0F0;
+    --muted: #666;
+    --dim: #3A3A3A;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter Tight', sans-serif; min-height: 100vh; }
+
+  header { border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg); z-index: 10; }
+  .header-brand { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -.01em; }
+  .header-brand span { color: var(--coral); }
+  .header-step { font-size: 11px; color: var(--muted); }
+
+  main { max-width: 600px; margin: 0 auto; padding: 44px 16px 100px; }
+  .page-title { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 6px; letter-spacing: -.02em; }
+  .page-sub { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 36px; }
+
+  /* PROGRESS */
+  .progress-wrap { margin-bottom: 32px; }
+  .progress-track { height: 2px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
+  .progress-fill { height: 100%; background: var(--coral); border-radius: 2px; transition: width .4s ease; }
+  .progress-labels { display: flex; justify-content: space-between; }
+  .progress-label { font-size: 10px; color: var(--dim); transition: color .2s; white-space: nowrap; }
+  .progress-label.active { color: #aaa; }
+  .progress-label.done { color: var(--muted); }
+
+  /* CARD */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 12px; }
+  .card + .card { margin-top: 0; }
+  .card-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+  .card-title-icon { font-size: 16px; }
+  .card-note { font-size: 11px; color: var(--muted); background: rgba(255,151,128,.06); border: 1px solid rgba(255,151,128,.12); border-radius: 6px; padding: 8px 12px; margin-bottom: 18px; line-height: 1.5; }
+
+  /* FIELDS */
+  .field { margin-bottom: 18px; }
+  .field:last-child { margin-bottom: 0; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; font-weight: 500; letter-spacing: .02em; }
+  label .opt { color: var(--dim); font-weight: 400; }
+  input[type="text"], input[type="email"], input[type="url"], textarea, select {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; font-size: 13px; color: var(--text); font-family: inherit;
+    outline: none; transition: border-color .15s; appearance: none;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--coral); }
+  input::placeholder, textarea::placeholder { color: #2A2A2A; }
+  textarea { resize: none; line-height: 1.65; }
+  .subdomain-wrap { display: flex; }
+  .subdomain-wrap input { border-radius: 8px 0 0 8px; }
+  .subdomain-suffix { background: var(--surface2); border: 1px solid var(--border); border-left: none; border-radius: 0 8px 8px 0; padding: 10px 12px; font-size: 13px; color: var(--dim); white-space: nowrap; }
+
+  /* PILLS */
+  .pills { display: flex; flex-wrap: wrap; gap: 7px; }
+  .pill { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 12px; color: var(--muted); background: transparent; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .pill:hover { border-color: var(--border2); color: #aaa; }
+  .pill.selected { border-color: var(--coral); color: #fff; background: rgba(255,151,128,.08); }
+
+  /* FILE UPLOAD */
+  .file-zone { border: 1px dashed var(--border2); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: border-color .15s; position: relative; }
+  .file-zone:hover, .file-zone.drag { border-color: var(--coral); }
+  .file-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .file-zone-text { font-size: 12px; color: var(--muted); pointer-events: none; }
+  .file-zone-text strong { color: var(--coral); }
+  .file-zone-sub { font-size: 11px; color: var(--dim); margin-top: 3px; }
+  .file-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .file-item { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; }
+  .file-item-name { font-size: 12px; color: #aaa; truncate: true; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 380px; }
+  .file-item-remove { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; transition: color .15s; flex-shrink: 0; }
+  .file-item-remove:hover { color: #888; }
+
+  /* DYNAMIC LIST */
+  .dynamic-list { display: flex; flex-direction: column; gap: 8px; }
+  .dynamic-item { display: flex; gap: 8px; align-items: flex-start; }
+  .dynamic-item input, .dynamic-item textarea { flex: 1; }
+  .dynamic-item-remove { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--dim); cursor: pointer; font-size: 16px; padding: 0; width: 36px; height: 36px; flex-shrink: 0; transition: all .15s; font-family: inherit; line-height: 1; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .dynamic-item-remove:hover { border-color: var(--border2); color: #888; }
+  .btn-add { background: none; border: 1px dashed var(--border2); border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 12px; padding: 8px 14px; font-family: inherit; transition: all .15s; width: 100%; margin-top: 6px; }
+  .btn-add:hover { border-color: var(--coral); color: var(--coral); }
+
+  /* GUIDANCE BUILDER */
+  .guidance-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; position: relative; }
+  .guidance-item-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .guidance-remove { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--dim); cursor: pointer; font-size: 14px; transition: color .15s; }
+  .guidance-remove:hover { color: #888; }
+  .guidance-arrow { display: flex; align-items: center; justify-content: center; color: var(--dim); font-size: 12px; padding: 4px 0; }
+
+  /* NAV */
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+  .btn-back { background: none; border: none; color: var(--dim); font-size: 13px; cursor: pointer; font-family: inherit; padding: 0; transition: color .15s; }
+  .btn-back:hover { color: var(--muted); }
+  .btn-next { background: var(--coral); color: #000; font-weight: 700; font-size: 13px; padding: 11px 24px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+  .btn-next:hover { opacity: .88; }
+  .btn-next:disabled { opacity: .4; cursor: default; }
+
+  /* SUCCESS */
+  .success { text-align: center; padding: 80px 0; }
+  .success-icon { width: 52px; height: 52px; background: rgba(34,197,94,.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; }
+  .success h2 { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+  .success p { font-size: 13px; color: var(--muted); line-height: 1.7; max-width: 360px; margin: 0 auto; }
+
+  @media (max-width: 500px) {
+    .field-row { grid-template-columns: 1fr; }
+    .guidance-item-row { grid-template-columns: 1fr; }
+    .progress-labels { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">Gorgias <span>AI Agent</span> Intake</div>
+  <span class="header-step" id="header-step">Step 1 of 7</span>
+</header>
+
+<main>
+  <div id="form-wrap">
+    <h1 class="page-title">Let's set up your AI Agent</h1>
+    <p class="page-sub">This form gives us everything we need to configure your AI Agent — brand voice, policies, common questions, and handling rules. Takes about 10 minutes.</p>
+
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:14.3%"></div></div>
+      <div class="progress-labels">
+        <span class="progress-label active" id="pl-0">Your Info</span>
+        <span class="progress-label" id="pl-1">Setup</span>
+        <span class="progress-label" id="pl-2">Stack</span>
+        <span class="progress-label" id="pl-3">Brand</span>
+        <span class="progress-label" id="pl-4">Policies</span>
+        <span class="progress-label" id="pl-5">Guidances</span>
+        <span class="progress-label" id="pl-6">Goals</span>
+      </div>
+    </div>
+
+    <!-- STEP 0: Your Info -->
+    <div class="step" id="step-0">
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">👤</span> Your info</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Your name *</label>
+            <input type="text" id="contactName" placeholder="Jane Smith">
+          </div>
+          <div class="field">
+            <label>Work email *</label>
+            <input type="email" id="contactEmail" placeholder="jane@brand.com">
+          </div>
+        </div>
+        <div class="field">
+          <label>Company name *</label>
+          <input type="text" id="company" placeholder="Brand Name Co.">
+        </div>
+        <div class="field">
+          <label>Gorgias subdomain * <span class="opt">— found in your Gorgias URL</span></label>
+          <div class="subdomain-wrap">
+            <input type="text" id="gorgiasSubdomain" placeholder="yourcompany">
+            <span class="subdomain-suffix">.gorgias.com</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Store URL <span class="opt">(optional)</span></label>
+          <input type="url" id="website" placeholder="https://brand.com">
+        </div>
+      </div>
+      <div class="nav"><div></div><button class="btn-next" onclick="next(0)">Continue →</button></div>
+    </div>
+
+    <!-- STEP 1: Current Setup -->
+    <div class="step" id="step-1" style="display:none">
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">⚙️</span> Current Gorgias setup</div>
+        <div class="field">
+          <label>Gorgias plan</label>
+          <div class="pills">
+            <button class="pill" onclick="pick('plan','Starter',this)">Starter</button>
+            <button class="pill" onclick="pick('plan','Basic',this)">Basic</button>
+            <button class="pill" onclick="pick('plan','Pro',this)">Pro</button>
+            <button class="pill" onclick="pick('plan','Advanced',this)">Advanced</button>
+            <button class="pill" onclick="pick('plan','Enterprise',this)">Enterprise</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Time on Gorgias</label>
+          <div class="pills">
+            <button class="pill" onclick="pick('tenure','< 3 months',this)">< 3 months</button>
+            <button class="pill" onclick="pick('tenure','3–12 months',this)">3–12 months</button>
+            <button class="pill" onclick="pick('tenure','1–2 years',this)">1–2 years</button>
+            <button class="pill" onclick="pick('tenure','2+ years',this)">2+ years</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Monthly ticket volume</label>
+          <div class="pills">
+            <button class="pill" onclick="pick('volume','< 100',this)">< 100</button>
+            <button class="pill" onclick="pick('volume','100–500',this)">100–500</button>
+            <button class="pill" onclick="pick('volume','500–1,000',this)">500–1,000</button>
+            <button class="pill" onclick="pick('volume','1,000–5,000',this)">1,000–5,000</button>
+            <button class="pill" onclick="pick('volume','5,000+',this)">5,000+</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Active support channels <span class="opt">— select all that apply</span></label>
+          <div class="pills">
+            <button class="pill multi" onclick="toggle('channels','Email',this)">Email</button>
+            <button class="pill multi" onclick="toggle('channels','Live chat',this)">Live chat</button>
+            <button class="pill multi" onclick="toggle('channels','Instagram',this)">Instagram</button>
+            <button class="pill multi" onclick="toggle('channels','Facebook',this)">Facebook</button>
+            <button class="pill multi" onclick="toggle('channels','SMS',this)">SMS</button>
+            <button class="pill multi" onclick="toggle('channels','Voice',this)">Voice</button>
+            <button class="pill multi" onclick="toggle('channels','Contact form',this)">Contact form</button>
+          </div>
+        </div>
+      </div>
+      <div class="nav"><button class="btn-back" onclick="back(1)">← Back</button><button class="btn-next" onclick="next(1)">Continue →</button></div>
+    </div>
+
+    <!-- STEP 2: Tech Stack -->
+    <div class="step" id="step-2" style="display:none">
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">🔧</span> Tech stack</div>
+        <div class="field">
+          <label>Ecommerce platform</label>
+          <div class="pills">
+            <button class="pill" onclick="pick('platform','Shopify',this)">Shopify</button>
+            <button class="pill" onclick="pick('platform','Shopify Plus',this)">Shopify Plus</button>
+            <button class="pill" onclick="pick('platform','WooCommerce',this)">WooCommerce</button>
+            <button class="pill" onclick="pick('platform','BigCommerce',this)">BigCommerce</button>
+            <button class="pill" onclick="pick('platform','Magento',this)">Magento</button>
+            <button class="pill" onclick="pick('platform','Other',this)">Other</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Apps & integrations <span class="opt">— select all that apply</span></label>
+          <div class="pills">
+            <button class="pill multi" onclick="toggle('apps','Klaviyo',this)">Klaviyo</button>
+            <button class="pill multi" onclick="toggle('apps','Attentive',this)">Attentive</button>
+            <button class="pill multi" onclick="toggle('apps','Postscript',this)">Postscript</button>
+            <button class="pill multi" onclick="toggle('apps','Loop Returns',this)">Loop Returns</button>
+            <button class="pill multi" onclick="toggle('apps','AfterShip',this)">AfterShip</button>
+            <button class="pill multi" onclick="toggle('apps','Narvar',this)">Narvar</button>
+            <button class="pill multi" onclick="toggle('apps','Yotpo',this)">Yotpo</button>
+            <button class="pill multi" onclick="toggle('apps','Okendo',this)">Okendo</button>
+            <button class="pill multi" onclick="toggle('apps','Recharge',this)">Recharge</button>
+            <button class="pill multi" onclick="toggle('apps','Skio',this)">Skio</button>
+            <button class="pill multi" onclick="toggle('apps','Gorgias AI Agent',this)">Gorgias AI Agent</button>
+            <button class="pill multi" onclick="toggle('apps','Other',this)">Other</button>
+          </div>
+        </div>
+      </div>
+      <div class="nav"><button class="btn-back" onclick="back(2)">← Back</button><button class="btn-next" onclick="next(2)">Continue →</button></div>
+    </div>
+
+    <!-- STEP 3: Brand & Tone -->
+    <div class="step" id="step-3" style="display:none">
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">🎨</span> Brand voice & tone</div>
+        <div class="card-note">This is how AI Agent will sound to your customers. The more specific, the better.</div>
+        <div class="field">
+          <label>How would you describe your brand's tone?  <span class="opt">— select all that apply</span></label>
+          <div class="pills">
+            <button class="pill multi" onclick="toggle('tone','Friendly',this)">Friendly</button>
+            <button class="pill multi" onclick="toggle('tone','Professional',this)">Professional</button>
+            <button class="pill multi" onclick="toggle('tone','Casual',this)">Casual</button>
+            <button class="pill multi" onclick="toggle('tone','Empathetic',this)">Empathetic</button>
+            <button class="pill multi" onclick="toggle('tone','Direct',this)">Direct</button>
+            <button class="pill multi" onclick="toggle('tone','Playful',this)">Playful</button>
+            <button class="pill multi" onclick="toggle('tone','Luxury',this)">Luxury</button>
+            <button class="pill multi" onclick="toggle('tone','Concise',this)">Concise</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Write an example of a great customer support response in your brand's voice</label>
+          <textarea id="toneExample" rows="4" style="height:90px" placeholder="e.g. Hey! Totally understand the frustration — let's get this sorted for you right away. I've gone ahead and..."></textarea>
+        </div>
+        <div class="field">
+          <label>Are there words, phrases, or topics AI Agent should never use or mention? <span class="opt">(optional)</span></label>
+          <textarea id="toneAvoid" rows="3" style="height:72px" placeholder="e.g. Never say 'unfortunately', don't mention competitors, avoid overpromising delivery times..."></textarea>
+        </div>
+        <div class="field">
+          <label>Any special sign-off, greeting, or formatting rules? <span class="opt">(optional)</span></label>
+          <textarea id="toneRules" rows="3" style="height:72px" placeholder="e.g. Always sign off with 'The [Brand] Team', use the customer's first name, keep replies under 3 sentences..."></textarea>
+        </div>
+      </div>
+      <div class="nav"><button class="btn-back" onclick="back(3)">← Back</button><button class="btn-next" onclick="next(3)">Continue →</button></div>
+    </div>
+
+    <!-- STEP 4: Policies & Knowledge -->
+    <div class="step" id="step-4" style="display:none">
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">📋</span> Policies & knowledge sources</div>
+        <div class="card-note">AI Agent learns directly from these. Upload policy docs or paste the content below — both work.</div>
+
+        <div class="field">
+          <label>Return & refund policy</label>
+          <textarea id="returnPolicy" style="height:80px" placeholder="Paste your return policy here, or upload a file below..."></textarea>
+          <div style="margin-top:8px">
+            <div class="file-zone" id="fz-return" ondragover="dragOver(event,'return')" ondragleave="dragLeave('return')" ondrop="dropFile(event,'return')">
+              <input type="file" accept=".pdf,.doc,.docx,.txt" onchange="addFile(event,'return')">
+              <div class="file-zone-text"><strong>Upload file</strong> or drag and drop</div>
+              <div class="file-zone-sub">PDF, DOC, DOCX, TXT · Max 8MB</div>
+            </div>
+            <div class="file-list" id="fl-return"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Shipping policy</label>
+          <textarea id="shippingPolicy" style="height:80px" placeholder="Paste your shipping policy here, or upload a file below..."></textarea>
+          <div style="margin-top:8px">
+            <div class="file-zone" id="fz-shipping" ondragover="dragOver(event,'shipping')" ondragleave="dragLeave('shipping')" ondrop="dropFile(event,'shipping')">
+              <input type="file" accept=".pdf,.doc,.docx,.txt" onchange="addFile(event,'shipping')">
+              <div class="file-zone-text"><strong>Upload file</strong> or drag and drop</div>
+              <div class="file-zone-sub">PDF, DOC, DOCX, TXT · Max 8MB</div>
+            </div>
+            <div class="file-list" id="fl-shipping"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Other key policies <span class="opt">(warranty, subscription cancellation, exchange rules, etc.)</span></label>
+          <textarea id="otherPolicies" style="height:80px" placeholder="Paste any other policies AI Agent should know..."></textarea>
+          <div style="margin-top:8px">
+            <div class="file-zone" id="fz-other" ondragover="dragOver(event,'other')" ondragleave="dragLeave('other')" ondrop="dropFile(event,'other')">
+              <input type="file" accept=".pdf,.doc,.docx,.txt" multiple onchange="addFile(event,'other')">
+              <div class="file-zone-text"><strong>Upload files</strong> or drag and drop</div>
+              <div class="file-zone-sub">PDF, DOC, DOCX, TXT · Max 8MB each · Multiple allowed</div>
+            </div>
+            <div class="file-list" id="fl-other"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Help Center URL <span class="opt">(if you have one)</span></label>
+          <input type="url" id="helpCenterUrl" placeholder="https://help.brand.com">
+        </div>
+
+        <div class="field">
+          <label>Other URLs AI Agent should learn from <span class="opt">(FAQs, product pages, size guides, etc.)</span></label>
+          <textarea id="knowledgeUrls" style="height:72px" placeholder="https://brand.com/faq&#10;https://brand.com/size-guide&#10;https://brand.com/sustainability"></textarea>
+        </div>
+      </div>
+      <div class="nav"><button class="btn-back" onclick="back(4)">← Back</button><button class="btn-next" onclick="next(4)">Continue →</button></div>
+    </div>
+
+    <!-- STEP 5: Guidances -->
+    <div class="step" id="step-5" style="display:none">
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">💬</span> Top customer questions</div>
+        <div class="card-note">What do customers ask most? List your top intents — AI Agent will be trained to handle these specifically.</div>
+        <div class="field">
+          <div class="dynamic-list" id="intents-list"></div>
+          <button class="btn-add" onclick="addIntent()">+ Add question</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="card-title"><span class="card-title-icon">📌</span> Handling instructions (guidances)</div>
+        <div class="card-note">Tell AI Agent exactly how to handle specific situations. Think of these as rules — "when a customer does X, AI Agent should do Y."</div>
+        <div class="field">
+          <div id="guidances-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+          <button class="btn-add" onclick="addGuidance()" style="margin-top:10px">+ Add guidance</button>
+        </div>
+      </div>
+      <div class="nav"><button class="btn-back" onclick="back(5)">← Back</button><button class="btn-next" onclick="next(5)">Continue →</button></div>
+    </div>
+
+    <!-- STEP 6: Goals & Escalation -->
+    <div class="step" id="step-6" style="display:none">
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">🚨</span> Escalation rules</div>
+        <div class="card-note">AI Agent should always hand these off to a human. Select the topics that apply to your brand.</div>
+        <div class="field">
+          <div class="pills">
+            <button class="pill multi" onclick="toggle('escalate','Chargebacks & disputes',this)">Chargebacks & disputes</button>
+            <button class="pill multi" onclick="toggle('escalate','Legal threats',this)">Legal threats</button>
+            <button class="pill multi" onclick="toggle('escalate','VIP customers',this)">VIP customers</button>
+            <button class="pill multi" onclick="toggle('escalate','Fraud suspected',this)">Fraud suspected</button>
+            <button class="pill multi" onclick="toggle('escalate','Repeat complaints',this)">Repeat complaints</button>
+            <button class="pill multi" onclick="toggle('escalate','High-value orders',this)">High-value orders</button>
+            <button class="pill multi" onclick="toggle('escalate','PR / media inquiries',this)">PR / media</button>
+            <button class="pill multi" onclick="toggle('escalate','Anything abusive',this)">Abusive messages</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Anything else AI Agent should never handle? <span class="opt">(optional)</span></label>
+          <textarea id="escalateOther" style="height:72px" placeholder="e.g. Any order over $500, wholesale inquiries, B2B requests..."></textarea>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="card-title"><span class="card-title-icon">🎯</span> Goals</div>
+        <div class="field">
+          <label>What do you most want AI Agent to achieve?</label>
+          <textarea id="retainerGoals" style="height:80px" placeholder="e.g. Deflect WISMO tickets, handle return requests end-to-end, reduce first response time below 5 minutes..."></textarea>
+        </div>
+        <div class="field">
+          <label>Anything else we should know before we start? <span class="opt">(optional)</span></label>
+          <textarea id="additionalNotes" style="height:72px" placeholder="e.g. We're launching a new product in April, peak season is Q4, our return rate is unusually high..."></textarea>
+        </div>
+        <div class="field">
+          <label>Preferred communication with our team</label>
+          <div class="pills">
+            <button class="pill" onclick="pick('commPref','Slack',this)">Slack</button>
+            <button class="pill" onclick="pick('commPref','Email',this)">Email</button>
+            <button class="pill" onclick="pick('commPref','Weekly call',this)">Weekly call</button>
+            <button class="pill" onclick="pick('commPref','Async only',this)">Async only</button>
+          </div>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn-back" onclick="back(6)">← Back</button>
+        <button class="btn-next" id="submit-btn" onclick="submitForm()">Submit →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success -->
+  <div id="success" style="display:none" class="success">
+    <div class="success-icon">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <path d="M4 11l5 5 9-9" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h2 id="success-name">You're all set!</h2>
+    <p>Your intake has been submitted. We'll review everything and be in touch to schedule your AI Agent setup session.</p>
+  </div>
+</main>
+
+<script>
+  const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE'
+  const STORAGE_KEY = 'gorgias-intake-v2'
+  const TOTAL_STEPS = 7
+  let currentStep = 0
+
+  const state = {
+    contactName: '', contactEmail: '', company: '', gorgiasSubdomain: '', website: '',
+    plan: '', tenure: '', volume: '', channels: [],
+    platform: '', apps: [],
+    tone: [], toneExample: '', toneAvoid: '', toneRules: '',
+    returnPolicy: '', shippingPolicy: '', otherPolicies: '',
+    returnFiles: [], shippingFiles: [], otherFiles: [],
+    helpCenterUrl: '', knowledgeUrls: '',
+    intents: [''],
+    guidances: [{ trigger: '', instruction: '' }],
+    escalate: [], escalateOther: '',
+    retainerGoals: '', additionalNotes: '', commPref: ''
+  }
+
+  // ---- PILLS ----
+  function pick(key, value, el) {
+    state[key] = value
+    el.closest('.pills').querySelectorAll('.pill').forEach(p => p.classList.remove('selected'))
+    el.classList.add('selected')
+    save()
+  }
+  function toggle(key, value, el) {
+    if (!Array.isArray(state[key])) state[key] = []
+    if (state[key].includes(value)) {
+      state[key] = state[key].filter(v => v !== value)
+      el.classList.remove('selected')
+    } else {
+      state[key].push(value)
+      el.classList.add('selected')
+    }
+    save()
+  }
+
+  // ---- FILE UPLOADS ----
+  const fileStores = { return: [], shipping: [], other: [] }
+
+  function dragOver(e, key) { e.preventDefault(); document.getElementById('fz-' + key).classList.add('drag') }
+  function dragLeave(key) { document.getElementById('fz-' + key).classList.remove('drag') }
+  function dropFile(e, key) {
+    e.preventDefault()
+    dragLeave(key)
+    Array.from(e.dataTransfer.files).forEach(f => processFile(f, key))
+  }
+  function addFile(e, key) {
+    Array.from(e.target.files).forEach(f => processFile(f, key))
+    e.target.value = ''
+  }
+  function processFile(file, key) {
+    if (file.size > 8 * 1024 * 1024) { alert(`${file.name} is too large (max 8MB).`); return }
+    const reader = new FileReader()
+    reader.onload = () => {
+      fileStores[key].push({ name: file.name, type: file.type, data: reader.result })
+      state[key + 'Files'] = fileStores[key]
+      renderFileList(key)
+      save()
+    }
+    reader.readAsDataURL(file)
+  }
+  function removeFile(key, idx) {
+    fileStores[key].splice(idx, 1)
+    state[key + 'Files'] = fileStores[key]
+    renderFileList(key)
+    save()
+  }
+  function renderFileList(key) {
+    const el = document.getElementById('fl-' + key)
+    el.innerHTML = fileStores[key].map((f, i) => `
+      <div class="file-item">
+        <span class="file-item-name">📄 ${f.name}</span>
+        <button class="file-item-remove" onclick="removeFile('${key}',${i})">✕</button>
+      </div>`).join('')
+  }
+
+  // ---- DYNAMIC INTENTS ----
+  function renderIntents() {
+    const list = document.getElementById('intents-list')
+    list.innerHTML = state.intents.map((v, i) => `
+      <div class="dynamic-item">
+        <input type="text" value="${escHtml(v)}" placeholder="e.g. Where is my order?" oninput="state.intents[${i}]=this.value;save()">
+        ${state.intents.length > 1 ? `<button class="dynamic-item-remove" onclick="removeIntent(${i})">✕</button>` : ''}
+      </div>`).join('')
+  }
+  function addIntent() { state.intents.push(''); renderIntents(); save() }
+  function removeIntent(i) { state.intents.splice(i, 1); renderIntents(); save() }
+
+  // ---- DYNAMIC GUIDANCES ----
+  function renderGuidances() {
+    const list = document.getElementById('guidances-list')
+    list.innerHTML = state.guidances.map((g, i) => `
+      <div class="guidance-item">
+        ${state.guidances.length > 1 ? `<button class="guidance-remove" onclick="removeGuidance(${i})">✕</button>` : ''}
+        <div class="guidance-item-row">
+          <div>
+            <label>When a customer…</label>
+            <input type="text" value="${escHtml(g.trigger)}" placeholder="asks to cancel their order" oninput="state.guidances[${i}].trigger=this.value;save()">
+          </div>
+          <div>
+            <label>AI Agent should…</label>
+            <input type="text" value="${escHtml(g.instruction)}" placeholder="offer a 10% discount before processing" oninput="state.guidances[${i}].instruction=this.value;save()">
+          </div>
+        </div>
+      </div>`).join('')
+  }
+  function addGuidance() { state.guidances.push({ trigger: '', instruction: '' }); renderGuidances(); save() }
+  function removeGuidance(i) { state.guidances.splice(i, 1); renderGuidances(); save() }
+
+  function escHtml(s) { return (s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;') }
+
+  // ---- NAVIGATION ----
+  function showStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.style.display = 'none')
+    document.getElementById('step-' + n).style.display = 'block'
+    document.getElementById('header-step').textContent = `Step ${n + 1} of ${TOTAL_STEPS}`
+    document.getElementById('progress-fill').style.width = ((n + 1) / TOTAL_STEPS * 100) + '%'
+    for (let i = 0; i < TOTAL_STEPS; i++) {
+      const el = document.getElementById('pl-' + i)
+      if (!el) continue
+      el.className = 'progress-label' + (i < n ? ' done' : i === n ? ' active' : '')
+    }
+    currentStep = n
+    save()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function next(from) {
+    syncTextInputs()
+    if (from === 0 && (!state.contactName || !state.contactEmail || !state.company || !state.gorgiasSubdomain)) {
+      alert('Please fill in the required fields.')
+      return
+    }
+    showStep(from + 1)
+  }
+  function back(from) { syncTextInputs(); showStep(from - 1) }
+
+  function syncTextInputs() {
+    const fields = ['contactName','contactEmail','company','gorgiasSubdomain','website',
+      'toneExample','toneAvoid','toneRules','returnPolicy','shippingPolicy','otherPolicies',
+      'helpCenterUrl','knowledgeUrls','escalateOther','retainerGoals','additionalNotes']
+    fields.forEach(id => { const el = document.getElementById(id); if (el) state[id] = el.value })
+  }
+
+  // ---- SAVE / LOAD ----
+  function save() {
+    syncTextInputs()
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ step: currentStep, state }))
+  }
+
+  function load() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+      if (!saved.state) { renderIntents(); renderGuidances(); return }
+      Object.assign(state, saved.state)
+      // Restore file stores
+      if (state.returnFiles) fileStores.return = state.returnFiles
+      if (state.shippingFiles) fileStores.shipping = state.shippingFiles
+      if (state.otherFiles) fileStores.other = state.otherFiles
+      currentStep = saved.step || 0
+
+      // Restore text inputs
+      const fields = ['contactName','contactEmail','company','gorgiasSubdomain','website',
+        'toneExample','toneAvoid','toneRules','returnPolicy','shippingPolicy','otherPolicies',
+        'helpCenterUrl','knowledgeUrls','escalateOther','retainerGoals','additionalNotes']
+      fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = state[id] || '' })
+
+      // Restore pills
+      document.querySelectorAll('.pill').forEach(pill => {
+        const oc = pill.getAttribute('onclick') || ''
+        const keyMatch = oc.match(/(?:pick|toggle)\('(\w+)'/)
+        const valMatch = oc.match(/'([^']+)',this/)
+        if (!keyMatch || !valMatch) return
+        const key = keyMatch[1], val = valMatch[1]
+        if (Array.isArray(state[key]) ? state[key].includes(val) : state[key] === val) {
+          pill.classList.add('selected')
+        }
+      })
+
+      renderIntents()
+      renderGuidances()
+      ;['return','shipping','other'].forEach(k => renderFileList(k))
+      showStep(currentStep)
+    } catch(e) { renderIntents(); renderGuidances() }
+  }
+
+  // ---- SUBMIT ----
+  async function submitForm() {
+    syncTextInputs()
+    const btn = document.getElementById('submit-btn')
+    btn.disabled = true
+    btn.textContent = 'Submitting...'
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(state)
+      })
+      localStorage.removeItem(STORAGE_KEY)
+      document.getElementById('form-wrap').style.display = 'none'
+      document.getElementById('success').style.display = 'block'
+      const first = (state.contactName || '').split(' ')[0]
+      if (first) document.getElementById('success-name').textContent = `You're all set, ${first}!`
+    } catch(e) {
+      btn.disabled = false
+      btn.textContent = 'Submit →'
+      alert('Something went wrong. Please try again.')
+    }
+  }
+
+  document.querySelectorAll('input:not([type="file"]), textarea').forEach(el => el.addEventListener('blur', save))
+  load()
+</script>
+</body>
+</html>
